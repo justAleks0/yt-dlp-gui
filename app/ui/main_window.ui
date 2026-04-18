@@ -10,6 +10,12 @@
     <height>570</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>380</width>
+    <height>440</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>yt-dlp-gui</string>
   </property>
@@ -19,7 +25,67 @@
      <pointsize>9</pointsize>
     </font>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="2,5,0">
+   <layout class="QVBoxLayout" name="verticalLayout_outer">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
+    <item>
+     <widget class="QScrollArea" name="sa_main_content">
+      <property name="frameShape">
+       <enum>QFrame::Shape::NoFrame</enum>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+      </property>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <widget class="QWidget" name="w_main_scroll">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>100</width>
+         <height>100</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,1">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
     <item>
      <widget class="QGroupBox" name="gb_params">
       <property name="title">
@@ -27,9 +93,19 @@
       </property>
       <layout class="QGridLayout" name="gridLayout" columnstretch="1,5,1,2,0">
        <item row="2" column="0">
+        <widget class="QLabel" name="lb_category">
+         <property name="text">
+          <string>Category</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1" colspan="4">
+        <widget class="QComboBox" name="dd_category"/>
+       </item>
+       <item row="3" column="0">
         <widget class="QLabel" name="lb_path">
          <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
@@ -43,19 +119,12 @@
          <property name="text">
           <string>Save to</string>
          </property>
-        </widget>
-       </item>
-       <item row="2" column="2">
-        <widget class="QPushButton" name="pb_path">
-         <property name="text">
-          <string>Browse...</string>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set>
          </property>
         </widget>
        </item>
-       <item row="2" column="4">
-        <widget class="QPushButton" name="pb_add"/>
-       </item>
-       <item row="2" column="1">
+       <item row="3" column="1" colspan="3">
         <widget class="QLineEdit" name="le_path">
          <property name="enabled">
           <bool>true</bool>
@@ -64,6 +133,42 @@
           <bool>true</bool>
          </property>
         </widget>
+       </item>
+       <item row="3" column="4">
+        <widget class="QPushButton" name="pb_path">
+         <property name="text">
+          <string>Browse…</string>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="lb_preset_label">
+         <property name="text">
+          <string>Format</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignVCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1" colspan="3">
+        <widget class="QComboBox" name="dd_preset">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="4">
+        <widget class="QPushButton" name="pb_add"/>
        </item>
        <item row="0" column="0">
         <widget class="QLabel" name="lb_link">
@@ -74,15 +179,217 @@
           </size>
          </property>
          <property name="text">
-          <string>Video URL(s)</string>
+          <string>Video URL</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="3">
-        <widget class="QComboBox" name="dd_preset"/>
-       </item>
        <item row="0" column="1" colspan="4">
-        <widget class="QPlainTextEdit" name="te_link"/>
+        <widget class="QLineEdit" name="te_link">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+           <horstretch>1</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="lb_link_preview_caption">
+         <property name="text">
+          <string>Preview</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignTop</set>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1" colspan="4">
+        <widget class="QFrame" name="fr_link_preview">
+         <property name="frameShape">
+          <enum>QFrame::Shape::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Shadow::Plain</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_link_preview">
+          <property name="spacing">
+           <number>10</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="lb_link_preview_thumb">
+            <property name="minimumSize">
+             <size>
+              <width>112</width>
+              <height>63</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>176</width>
+              <height>99</height>
+             </size>
+            </property>
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+            <property name="scaledContents">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="w_link_preview_text_column">
+            <layout class="QVBoxLayout" name="verticalLayout_link_preview_text">
+             <property name="spacing">
+              <number>6</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="lb_link_preview_meta">
+               <property name="text">
+                <string>Paste a link above to see title, channel, and thumbnail before you add it to the queue.</string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignTop</set>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lb_link_preview_outfile">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignTop</set>
+               </property>
+               <property name="textInteractionFlags">
+                <set>Qt::TextInteractionFlag::TextSelectableByMouse</set>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="gb_setup">
+      <property name="title">
+       <string>Setup &amp; dependencies</string>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_setup">
+       <property name="spacing">
+        <number>6</number>
+       </property>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_ytdlp">
+         <item>
+          <widget class="QLabel" name="lb_ytdlp_help">
+           <property name="text">
+            <string>Install or update yt-dlp in the app folder. If the bundled .exe fails, use pip: pip install -U yt-dlp (details in tooltip on the button).</string>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>1</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_install_ytdlp">
+           <property name="text">
+            <string>Install yt-dlp</string>
+           </property>
+           <property name="toolTip">
+            <string>Download the latest yt-dlp into the app binaries folder. If the Windows .exe fails (PyInstaller / antivirus), install with: pip install -U yt-dlp — the app will use the Python package automatically when it works.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="lb_deps_status">
+         <property name="text">
+          <string>Status will appear after the first startup check completes, or click Check again.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+         <property name="textInteractionFlags">
+          <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_deps_buttons">
+         <item>
+          <widget class="QPushButton" name="pb_refresh_deps">
+           <property name="text">
+            <string>Check again</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pb_reinstall_all">
+           <property name="text">
+            <string>Re-install all</string>
+           </property>
+           <property name="toolTip">
+            <string>Remove old copies and re-download ffmpeg, ffprobe, deno, and yt-dlp (replaces files; large download).</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pb_reinstall_failed">
+         <property name="text">
+          <string>Fix failed only</string>
+         </property>
+         <property name="toolTip">
+          <string>Re-download only tools that the last check marked missing or broken (uses “Check again” results).</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -92,62 +399,70 @@
       <property name="title">
        <string>Downloads</string>
       </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>1</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
       <layout class="QGridLayout" name="gridLayout_3">
-       <item row="1" column="0">
-        <widget class="QTreeWidget" name="tw">
-         <attribute name="headerVisible">
+       <item row="0" column="0">
+        <widget class="QScrollArea" name="sa_downloads">
+         <property name="frameShape">
+          <enum>QFrame::Shape::NoFrame</enum>
+         </property>
+         <property name="widgetResizable">
           <bool>true</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Title</string>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>120</height>
+          </size>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>1</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
+         <widget class="QWidget" name="w_downloads_list">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>100</width>
+            <height>40</height>
+           </rect>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Preset</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Size</string>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Progress</string>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Status</string>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Speed</string>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>ETA</string>
-          </property>
-         </column>
+          <layout class="QVBoxLayout" name="vl_downloads">
+           <property name="spacing">
+            <number>8</number>
+           </property>
+           <property name="leftMargin">
+            <number>2</number>
+           </property>
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="rightMargin">
+            <number>2</number>
+           </property>
+           <property name="bottomMargin">
+            <number>4</number>
+           </property>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
+     </widget>
+    </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item>
@@ -232,8 +547,15 @@
     </property>
     <addaction name="action_clear_url_list"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="action_preferences"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
+   <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="action_about">
@@ -248,7 +570,7 @@
   </action>
   <action name="action_clear_url_list">
    <property name="text">
-    <string>Clear URL List</string>
+    <string>Clear URL</string>
    </property>
   </action>
   <action name="action_open_bin_folder">
@@ -261,9 +583,17 @@
     <string>Open Log Folder</string>
    </property>
   </action>
+  <action name="action_preferences">
+   <property name="text">
+    <string>Preferences…</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+,</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
-  <tabstop>tw</tabstop>
+  <tabstop>te_link</tabstop>
  </tabstops>
  <resources/>
  <connections/>

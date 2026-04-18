@@ -1,0 +1,3 @@
+# Optional: build a Windows folder distribution (see app/yt-dlp-gui.spec and build_windows.ps1)
+-r requirements.txt
+pyinstaller>=6.0

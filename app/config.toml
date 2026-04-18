@@ -1,15 +1,84 @@
 [general]
-current_preset = 0
-path = ""
+current_preset = 2
+# Last selected download category (empty = none). Names must match [[categories]] entries.
+current_category = "Music"
+path = "C:/Users/aleks/Downloads"
+# When true, each download uses a subfolder under path named after the preset (e.g. mp3/, mp4/).
+download_sort_folders = true
 # appended to every preset (e.g "--cookies-from-browser firefox")
 global_args = ""
 # automatically update yt-dlp on program startup.
 update_ytdlp = true
+# Ask before removing all queued items (Clear list).
+confirm_clear_queue = true
 
-# create your own presets or modify existing ones
+# Resume partial files (disable with --no-continue in Advanced).
+continue_partial = true
+# Skip download if the file already exists (--no-overwrites).
+no_overwrites = true
+restrict_filenames = false
+# Safer names on Windows drives; on Linux defaults off if omitted.
+windows_filenames = true
+# yt-dlp retry limits (0–999).
+retries = 10
+fragment_retries = 10
+# DASH/HLS: parallel fragment downloads (1 = default; 2+ enables).
+concurrent_fragments = 1
+# Optional: append video IDs to this file to skip re-downloads (--download-archive).
+download_archive = ""
+
+# Default output filename pattern: ordered token ids (see Settings → Filenames).
+# Empty = yt-dlp default naming with -P only (no custom -o template).
+output_name_tokens = []
+
+# Labels for queued downloads. Toggle "use_custom_path" per category to save under "path"
+# instead of the default folder (preset subfolders still apply under that base).
+# use_custom_filename + output_name_tokens: optional per-category filename pattern (same token ids as global).
+[[categories]]
+name = "Music"
+use_custom_path = true
+path = "C:/Users/aleks/Music/Not On Spotify"
+use_custom_filename = true
+output_name_tokens = ["video_title", "lit_dash", "uploader"]
+
+[[categories]]
+name = "Movies"
+use_custom_path = false
+path = ""
+use_custom_filename = false
+output_name_tokens = []
+
+[[categories]]
+name = "Gameplay"
+use_custom_path = false
+path = ""
+use_custom_filename = false
+output_name_tokens = []
+
+[[categories]]
+name = "Guides"
+use_custom_path = false
+path = ""
+use_custom_filename = false
+output_name_tokens = []
+[preset_labels]
+best = "Highest quality (video + audio)"
+mp4 = "MP4 (H.264 video)"
+mp3 = "MP3 (audio, ID3 + cover)"
+
 [presets]
 best = "-f bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b"
 mp4 = "-f bv*[vcodec^=avc]+ba[ext=m4a]/b"
-mp3 = "--extract-audio --audio-format mp3 --audio-quality 0"
+# MP3: embed ID3 tags + thumbnail; split "Artist - Title" in the video title when yt-dlp can;
+# NA placeholder keeps empty fields readable in players. (Bundled yt-dlp includes mutagen for MP3.)
+mp3 = [
+  "--extract-audio",
+  "--audio-format", "mp3",
+  "--audio-quality", "0",
+  "--parse-metadata", "title:%(artist)s - %(title)s",
+  "--embed-metadata",
+  "--embed-thumbnail",
+  "--output-na-placeholder", "Unknown",
+]
 # uncomment below to add wav preset.
 # wav = "--extract-audio --audio-format wav --audio-quality 0"
