@@ -1,5 +1,14 @@
 # yt-dlp-gui
 
+<p align="center">
+  <img src=".github/readme-dev-banner.svg" alt="This project is developed in bursts; it may look quiet but it is not abandoned." width="780" />
+</p>
+
+> [!IMPORTANT]
+> This project is in constant development—though not always in a constant state of progress. I tend to work in bursts: when inspiration hits, I can be completely locked in for days, making rapid progress and refining every detail. As that initial momentum fades, development usually slows down or pauses unless bugs or major issues need fixing.
+>
+> Because of that, the project may seem inactive at times, but it's never truly abandoned. I often return to it unexpectedly—whether I've found a better solution, thought of a new feature, or simply felt motivated to keep building again.
+
 Simplistic graphical interface for the command line tool [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 
 ## Usage

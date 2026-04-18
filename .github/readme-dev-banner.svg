@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 200" role="img" aria-label="Burst development  not abandoned">
+  <defs>
+    <linearGradient id="readmeRainbow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e40303"/>
+      <stop offset="17%" stop-color="#ff8c00"/>
+      <stop offset="33%" stop-color="#ffed00"/>
+      <stop offset="50%" stop-color="#008026"/>
+      <stop offset="67%" stop-color="#004dff"/>
+      <stop offset="83%" stop-color="#732982"/>
+      <stop offset="100%" stop-color="#ff1493"/>
+    </linearGradient>
+  </defs>
+  <text x="460" y="78" text-anchor="middle" font-family="system-ui,Segoe UI,Helvetica,Arial,sans-serif" font-size="48" font-weight="800" fill="url(#readmeRainbow)">BURST DEVELOPMENT</text>
+  <text x="460" y="150" text-anchor="middle" font-family="system-ui,Segoe UI,Helvetica,Arial,sans-serif" font-size="48" font-weight="800" fill="url(#readmeRainbow)">NOT ABANDONED</text>
+</svg>
