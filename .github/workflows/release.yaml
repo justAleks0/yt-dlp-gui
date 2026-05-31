@@ -60,6 +60,13 @@ jobs:
           pyinstaller yt-dlp-gui.spec --noconfirm
           Compress-Archive -Path dist/yt-dlp-gui -DestinationPath ./yt-dlp-gui-win64.zip
 
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build installer
+        run: |
+          iscc "/DRepoRoot=${{ github.workspace }}" "/DAppVersion=${{ env.TAG_NAME }}" ./installer/yt-dlp-gui.iss
+
       - uses: softprops/action-gh-release@v2
         if: ${{ github.event.inputs.nightly == 'true' }}
         with:
@@ -70,6 +77,7 @@ jobs:
           prerelease: true
           files: |
             ./app/yt-dlp-gui-win64.zip
+            ./release/yt-dlp-gui-installer.exe
             
       - uses: softprops/action-gh-release@v2
         if: ${{ github.event.inputs.nightly == 'false' }}
@@ -80,3 +88,4 @@ jobs:
           prerelease: false
           files: |
             ./app/yt-dlp-gui-win64.zip
+            ./release/yt-dlp-gui-installer.exe

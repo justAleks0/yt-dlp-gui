@@ -20,7 +20,10 @@ There are two ways to get started, depending on your preference and system:
 
 ### Portable
 
-Download the latest [stable](https://github.com/dsymbol/yt-dlp-gui/releases/latest) or [nightly](https://github.com/dsymbol/yt-dlp-gui/releases/tag/nightly) build. This is a ZIP file containing the program files and all necessary dependencies.
+Download the latest [stable](https://github.com/dsymbol/yt-dlp-gui/releases/latest) or [nightly](https://github.com/dsymbol/yt-dlp-gui/releases/tag/nightly) build.
+
+- `yt-dlp-gui-win64.zip`: portable folder (extract and run `yt-dlp-gui.exe`)
+- `yt-dlp-gui-installer.exe`: Windows installer (recommended for start menu/desktop shortcuts)
 
 *All releases are built and released using GitHub Workflow*
 
@@ -35,6 +38,20 @@ pip install -r requirements.txt
 cd app
 python app.py
 ```
+
+### Build Windows installer (maintainers)
+
+The repo includes an Inno Setup script at `installer/yt-dlp-gui.iss`.
+
+```powershell
+./build_windows.ps1
+```
+
+If Inno Setup (`iscc`) is installed, this script now builds:
+
+- `app/dist/yt-dlp-gui` (portable onedir app)
+- `release/yt-dlp-gui-installer.exe` (installer)
+- `yt-dlp-gui-installer.exe` (copied to repo root for quick access)
 
 ## Preset Customization (Advanced)
 

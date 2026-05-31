@@ -231,6 +231,8 @@ class ItemRoles:
     LinkRole = QtCore.Qt.UserRole + 1
     PathRole = QtCore.Qt.UserRole + 2
     CategoryRole = QtCore.Qt.UserRole + 3
+    # Set when a queue row came from playlist expand: "3/34"
+    PlaylistPosRole = QtCore.Qt.UserRole + 4
 
 
 class TreeColumn:

@@ -61,6 +61,7 @@ class DownloadRowFrame(QtWidgets.QFrame):
         self._link = link
         self._path_role = ""
         self._category_key: str | None = None
+        self._playlist_queue_pos: str | None = None
         self._preset_key = preset_key
 
         self._cat_display = category_display
@@ -92,7 +93,7 @@ class DownloadRowFrame(QtWidgets.QFrame):
         self._lb_thumb.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self._lb_thumb.setScaledContents(False)
         self._lb_thumb.setStyleSheet(
-            "QLabel { background-color: palette(base); border: 1px solid palette(mid); border-radius: 3px; }"
+            "QLabel { background-color: #101010; border: 1px solid #3a3a3a; border-radius: 8px; }"
         )
 
         text_col = QtWidgets.QVBoxLayout()
@@ -132,14 +133,14 @@ class DownloadRowFrame(QtWidgets.QFrame):
 
         self._lb_outfile = QtWidgets.QLabel(self)
         self._lb_outfile.setWordWrap(True)
-        self._lb_outfile.setStyleSheet("color: palette(mid);")
+        self._lb_outfile.setStyleSheet("color: #a8a8a8;")
         self._lb_outfile.setTextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
         )
 
         self._lb_link = QtWidgets.QLabel(self)
         self._lb_link.setWordWrap(True)
-        self._lb_link.setStyleSheet("color: palette(mid); font-size: 8pt;")
+        self._lb_link.setStyleSheet("color: #8f8f8f; font-size: 8pt;")
         self._lb_link.setTextInteractionFlags(
             QtCore.Qt.TextInteractionFlag.TextSelectableByMouse
         )
@@ -156,13 +157,13 @@ class DownloadRowFrame(QtWidgets.QFrame):
 
         self._lb_details = QtWidgets.QLabel()
         self._lb_details.setWordWrap(False)
-        self._lb_details.setStyleSheet("color: palette(mid);")
+        self._lb_details.setStyleSheet("color: #a8a8a8;")
         self._sync_details_label()
         root.addWidget(self._lb_details)
 
         self._lb_stats = QtWidgets.QLabel()
         self._lb_stats.setWordWrap(False)
-        self._lb_stats.setStyleSheet("color: palette(mid);")
+        self._lb_stats.setStyleSheet("color: #a8a8a8;")
         self._sync_stats_label()
         root.addWidget(self._lb_stats)
 
@@ -266,6 +267,8 @@ class DownloadRowFrame(QtWidgets.QFrame):
             return self._path_role
         if role == ItemRoles.CategoryRole:
             return self._category_key
+        if role == ItemRoles.PlaylistPosRole:
+            return self._playlist_queue_pos
         return None
 
     def setData(self, _column: int, role: int, value) -> None:
@@ -273,6 +276,10 @@ class DownloadRowFrame(QtWidgets.QFrame):
             self._path_role = str(value)
         elif role == ItemRoles.CategoryRole:
             self._category_key = value if isinstance(value, str) or value is None else None
+        elif role == ItemRoles.PlaylistPosRole:
+            self._playlist_queue_pos = (
+                str(value).strip() if isinstance(value, str) and str(value).strip() else None
+            )
 
     def title_for_log(self) -> str:
         t = self._lb_video_title.text().strip()

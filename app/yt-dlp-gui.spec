@@ -4,7 +4,7 @@
 #
 # Output: dist/yt-dlp-gui/yt-dlp-gui.exe (onedir; config.toml + debug.log live beside the exe)
 
-from PyInstaller.utils.hooks import collect_all
+from PyInstaller.utils.hooks import collect_data_files
 
 block_cipher = None
 
@@ -13,13 +13,10 @@ datas = [
     ("assets", "assets"),
 ]
 
-pys_datas, pys_binaries, pys_hiddenimports = collect_all("PySide6")
-qa_datas, qa_binaries, qa_hiddenimports = collect_all("qtawesome")
+qa_datas = collect_data_files("qtawesome")
 
 hiddenimports = sorted(
     {
-        *pys_hiddenimports,
-        *qa_hiddenimports,
         "settings_dialog",
         "output_name_tokens",
         "filename_pattern_widget",
@@ -41,8 +38,8 @@ hiddenimports = sorted(
 a = Analysis(
     ["app.py"],
     pathex=[],
-    binaries=pys_binaries + qa_binaries,
-    datas=datas + pys_datas + qa_datas,
+    binaries=[],
+    datas=datas + qa_datas,
     hiddenimports=list(hiddenimports),
     hookspath=[],
     hooksconfig={},

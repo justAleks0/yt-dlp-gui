@@ -1,0 +1,15 @@
+---
+description: Keep installer definitions in sync with app changes
+alwaysApply: true
+---
+
+# Installer Sync Rule
+
+When making product, packaging, or release-related changes:
+
+- Update installer inputs together with app changes (`installer/yt-dlp-gui.iss`, `build_windows.ps1`, `.github/workflows/release.yaml`).
+- If launch paths, app name, version flow, or output artifacts change, ensure installer output names/paths still match.
+- Keep `README.md` release/build instructions aligned with the actual installer and portable artifacts.
+- Verify installer build commands are still runnable (`iscc ...` and `build_windows.ps1` behavior).
+
+Treat installer maintenance as required follow-up work, the same way README maintenance is required.

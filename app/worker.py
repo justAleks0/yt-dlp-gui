@@ -1,4 +1,5 @@
 import logging
+import re
 import shlex
 import subprocess as sp
 import sys
@@ -13,6 +14,12 @@ from output_name_tokens import (
 from utils import ItemRoles, TreeColumn, effective_download_path, general_ytdlp_cli_args
 
 logger = logging.getLogger(__name__)
+
+# yt-dlp prints e.g. "[download] Downloading item 3 of 34" between playlist entries.
+_PLAYLIST_ITEM_RE = re.compile(
+    r"\[download\]\s+Downloading\s+(?:video|item)\s+(\d+)\s+of\s+(\d+)",
+    re.IGNORECASE,
+)
 
 
 def _cli_args_from_config_value(raw) -> list[str]:
@@ -35,6 +42,12 @@ class DownloadWorker(QtCore.QThread):
         self.config = config
         self._mutex = QtCore.QMutex()
         self._stop = False
+        self._playlist_pos: str | None = None  # e.g. "3/34" when downloading a multi-entry playlist
+
+    def _status_with_playlist(self, base: str) -> str:
+        if self._playlist_pos:
+            return f"{self._playlist_pos} · {base}"
+        return base
 
     def build_command(self, config):
         args = list(resolve_ytdlp_argv())
@@ -76,7 +89,14 @@ class DownloadWorker(QtCore.QThread):
         output = ""
         logger.info(f"Download ({self.id}) starting with cmd: {self.command}")
 
-        self.progress.emit(self.item, [(TreeColumn.STATUS, "Processing")])
+        qp = self.item.data(0, ItemRoles.PlaylistPosRole)
+        if isinstance(qp, str) and qp.strip():
+            self._playlist_pos = qp.strip()
+
+        self.progress.emit(
+            self.item,
+            [(TreeColumn.STATUS, self._status_with_playlist("Processing"))],
+        )
 
         with sp.Popen(
             self.command,
@@ -108,23 +128,61 @@ class DownloadWorker(QtCore.QThread):
                             (TreeColumn.PROGRESS, percent),
                             (TreeColumn.SPEED, speed),
                             (TreeColumn.ETA, eta),
-                            (TreeColumn.STATUS, "Downloading"),
+                            (
+                                TreeColumn.STATUS,
+                                self._status_with_playlist("Downloading"),
+                            ),
                         ],
                     )
                 elif line.startswith(("[Merger]", "[ExtractAudio]")):
-                    self.progress.emit(self.item, [(TreeColumn.STATUS, "Converting")])
+                    self.progress.emit(
+                        self.item,
+                        [
+                            (
+                                TreeColumn.STATUS,
+                                self._status_with_playlist("Converting"),
+                            )
+                        ],
+                    )
+                elif (m := _PLAYLIST_ITEM_RE.search(line)) is not None:
+                    cur, total = m.group(1), m.group(2)
+                    # "1 of 1" appears for ordinary single-video downloads too — ignore so we don't
+                    # snap progress back to 0 between phases (ffmpeg merge, etc.).
+                    if total == "1":
+                        pass
+                    else:
+                        self._playlist_pos = f"{cur}/{total}"
+                        self.progress.emit(
+                            self.item,
+                            [
+                                (TreeColumn.PROGRESS, "0%"),
+                                (TreeColumn.SPEED, "-"),
+                                (TreeColumn.ETA, "-"),
+                                (
+                                    TreeColumn.STATUS,
+                                    self._status_with_playlist(
+                                        "Starting download"
+                                    ),
+                                ),
+                            ],
+                        )
                 elif line.startswith("WARNING:"):
                     logger.warning(f"Download ({self.id}) {line}")
 
         if p.returncode != 0:
             logger.error(f"Download ({self.id}) returncode: {p.returncode}\n{output}")
-            self.progress.emit(self.item, [(TreeColumn.STATUS, "ERROR")])
+            self.progress.emit(
+                self.item,
+                [(TreeColumn.STATUS, self._status_with_playlist("ERROR"))],
+            )
+            self._playlist_pos = None
         else:
             logger.info(f"Download ({self.id}) finished.")
             self.progress.emit(
                 self.item,
                 [
                     (TreeColumn.PROGRESS, "100%"),
-                    (TreeColumn.STATUS, "Finished"),
+                    (TreeColumn.STATUS, self._status_with_playlist("Finished")),
                 ],
             )
+            self._playlist_pos = None

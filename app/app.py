@@ -15,6 +15,7 @@ from dep_dl import (
 from PySide6 import QtCore, QtGui, QtWidgets
 from download_row import DownloadRowFrame
 from link_preview import LinkPreviewWorker, normalize_url_input
+from playlist_expand import PlaylistExpandWorker
 from output_name_tokens import preview_output_filepath
 from settings_dialog import PreferencesDialog
 from ui.main_window import Ui_MainWindow
@@ -47,6 +48,202 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+YOUTUBE_DARK_STYLESHEET = """
+QWidget {
+    background-color: #0f0f0f;
+    color: #f1f1f1;
+    font-family: "Segoe UI", "Inter", sans-serif;
+}
+
+QMainWindow, QDialog {
+    background-color: #0f0f0f;
+}
+
+QMenuBar {
+    background-color: #0f0f0f;
+    color: #f1f1f1;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+QMenuBar::item {
+    padding: 6px 10px;
+    border-radius: 7px;
+}
+
+QMenuBar::item:selected {
+    background: #272727;
+}
+
+QMenu {
+    background-color: #1f1f1f;
+    border: 1px solid #303030;
+    color: #f1f1f1;
+}
+
+QMenu::item:selected {
+    background-color: #2f2f2f;
+}
+
+QStatusBar {
+    background-color: #0f0f0f;
+    border-top: 1px solid #2a2a2a;
+}
+
+QGroupBox {
+    background-color: #1f1f1f;
+    border: 1px solid #303030;
+    border-radius: 14px;
+    margin-top: 16px;
+    font-weight: 600;
+    padding-top: 14px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 12px;
+    top: 2px;
+    color: #f1f1f1;
+    padding: 0 6px;
+}
+
+QLabel {
+    background: transparent;
+}
+
+QLineEdit, QComboBox, QPlainTextEdit, QTextEdit, QSpinBox {
+    background-color: #121212;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 6px 8px;
+    selection-background-color: #cc0000;
+}
+
+QLineEdit:focus, QComboBox:focus, QPlainTextEdit:focus, QTextEdit:focus, QSpinBox:focus {
+    border: 1px solid #cc0000;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 26px;
+}
+
+QPushButton {
+    background-color: #272727;
+    color: #f1f1f1;
+    border: 1px solid #3a3a3a;
+    border-radius: 18px;
+    padding: 7px 12px;
+    font-weight: 600;
+}
+
+QPushButton:hover {
+    background-color: #323232;
+}
+
+QPushButton:pressed {
+    background-color: #3a3a3a;
+}
+
+QPushButton:disabled {
+    background-color: #1a1a1a;
+    color: #7d7d7d;
+    border-color: #252525;
+}
+
+QPushButton#pb_download {
+    background-color: #ff0000;
+    border-color: #ff0000;
+    color: #ffffff;
+    min-width: 130px;
+}
+
+QPushButton#pb_download:hover {
+    background-color: #e10000;
+    border-color: #e10000;
+}
+
+QPushButton#pb_add {
+    background-color: #3ea6ff;
+    border-color: #3ea6ff;
+    color: #0f0f0f;
+}
+
+QFrame#fr_link_preview, QFrame#downloadRow {
+    background-color: #181818;
+    border: 1px solid #303030;
+    border-radius: 12px;
+}
+
+QScrollArea {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: #4a4a4a;
+    border-radius: 5px;
+    min-height: 26px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QProgressBar {
+    border: 1px solid #303030;
+    border-radius: 7px;
+    background: #101010;
+}
+
+QProgressBar::chunk {
+    background-color: #ff0000;
+    border-radius: 6px;
+}
+
+QTabWidget::pane {
+    border: 1px solid #303030;
+    border-radius: 12px;
+    background: #181818;
+}
+
+QTabBar::tab {
+    background: #1f1f1f;
+    color: #d8d8d8;
+    border: 1px solid #303030;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 7px 12px;
+    margin-right: 4px;
+}
+
+QTabBar::tab:selected {
+    color: #ffffff;
+    background: #262626;
+}
+
+QHeaderView::section {
+    background-color: #1f1f1f;
+    color: #d8d8d8;
+    border: 1px solid #303030;
+    padding: 6px;
+}
+
+QTableWidget {
+    background-color: #121212;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    gridline-color: #2b2b2b;
+    selection-background-color: #323232;
+}
+"""
+
 
 def _deps_rows_to_html(rows: list) -> str:
     """``rows`` is ``list[tuple[str, bool, str]]`` from :class:`DependencyCheckWorker`."""
@@ -72,25 +269,29 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self._apply_youtube_theme()
         self.setWindowIcon(QtGui.QIcon(str(ROOT / "assets" / "yt-dlp-gui.ico")))
-        self.pb_add.setIcon(qta.icon("mdi6.plus"))
+        self.pb_add.setIcon(qta.icon("mdi6.plus", color="#0f0f0f"))
         self.pb_add.setIconSize(QtCore.QSize(21, 21))
-        self.pb_clear.setIcon(qta.icon("mdi6.trash-can-outline"))
+        self.pb_clear.setIcon(qta.icon("mdi6.trash-can-outline", color="#f1f1f1"))
         self.pb_clear.setIconSize(QtCore.QSize(22, 22))
-        self.pb_download.setIcon(qta.icon("mdi6.download"))
+        self.pb_download.setIcon(qta.icon("mdi6.download", color="#ffffff"))
         self.pb_download.setIconSize(QtCore.QSize(22, 22))
-        self.pb_install_ytdlp.setIcon(qta.icon("mdi6.tray-arrow-down"))
-        self.pb_refresh_deps.setIcon(qta.icon("mdi6.refresh"))
-        self.pb_reinstall_all.setIcon(qta.icon("mdi6.package-variant"))
-        self.pb_reinstall_failed.setIcon(qta.icon("mdi6.wrench"))
+        self.pb_install_ytdlp.setIcon(qta.icon("mdi6.tray-arrow-down", color="#f1f1f1"))
+        self.pb_refresh_deps.setIcon(qta.icon("mdi6.refresh", color="#f1f1f1"))
+        self.pb_reinstall_all.setIcon(qta.icon("mdi6.package-variant", color="#f1f1f1"))
+        self.pb_reinstall_failed.setIcon(qta.icon("mdi6.wrench", color="#f1f1f1"))
         self.action_preferences.setShortcut(QtGui.QKeySequence("Ctrl+,"))
         self.lb_deps_status.setTextFormat(QtCore.Qt.TextFormat.RichText)
         self.te_link.setPlaceholderText(
             "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         )
         self.lb_link_preview_thumb.setStyleSheet(
-            "QLabel { background-color: palette(base); border: 1px solid palette(mid); border-radius: 3px; }"
+            "QLabel { background-color: #101010; border: 1px solid #3a3a3a; border-radius: 8px; }"
         )
+        self.lb_link_preview_outfile.setStyleSheet("color: #a8a8a8;")
+        self.pb_clear.setText("Clear queue")
+        self.pb_download.setText("Download")
 
         self.w_downloads_list.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
@@ -125,6 +326,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self._link_preview_gen = 0
         self._link_preview_worker: Optional[LinkPreviewWorker] = None
+        self._playlist_worker: Optional[PlaylistExpandWorker] = None
+        self._playlist_expand_busy = False
+        self._playlist_expand_gen = 0
+        self._playlist_expand_url_active = ""
         self._link_preview_timer = QtCore.QTimer(self)
         self._link_preview_timer.setSingleShot(True)
         self._link_preview_timer.timeout.connect(self._fetch_link_preview)
@@ -132,7 +337,13 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._link_preview_last_url: Optional[str] = None
         self._link_preview_meta_dict: Optional[dict] = None
         self._link_preview_thumb_bytes: Optional[bytes] = None
-        self.lb_link_preview_outfile.setStyleSheet("color: palette(mid);")
+
+    def _apply_youtube_theme(self) -> None:
+        self.setStyleSheet(YOUTUBE_DARK_STYLESHEET)
+        self.w_main_scroll.setMaximumWidth(1120)
+        self.sa_main_content.setAlignment(
+            QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop
+        )
 
     def connect_ui(self):
         # buttons
@@ -193,7 +404,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.lb_link_preview_thumb.clear()
         self.lb_link_preview_meta.setTextFormat(QtCore.Qt.TextFormat.PlainText)
         self.lb_link_preview_meta.setText(
-            "Paste a link above to see title, channel, and thumbnail before you add it to the queue."
+            "Paste a video or playlist URL above to preview details before you add it to the queue."
         )
         self.lb_link_preview_outfile.clear()
 
@@ -275,8 +486,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._preview_yt_info = yt_info if isinstance(yt_info, dict) else None
         lines: list[str] = []
         t = (meta.get("title") or "").strip()
+        pl = (meta.get("playlist_title") or "").strip()
+        plc = (meta.get("playlist_count") or "").strip()
+        if pl:
+            if plc:
+                lines.append(f"Playlist: {pl} ({plc} items)")
+            else:
+                lines.append(f"Playlist: {pl}")
         if t:
-            lines.append(t)
+            if pl:
+                lines.append(f"First item: {t}")
+            else:
+                lines.append(t)
         u = (meta.get("uploader") or "").strip()
         if u:
             lines.append(u)
@@ -332,7 +553,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pb_install_ytdlp.setEnabled(not busy and self._downloads_enabled)
         self.pb_refresh_deps.setEnabled(not busy)
         if self._downloads_enabled:
-            self.pb_download.setEnabled(not busy)
+            self.pb_download.setEnabled(not busy and not self._playlist_expand_busy)
         self._update_fix_failed_button()
 
     def _update_fix_failed_button(self):
@@ -554,8 +775,146 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.config["general"]["path"] = path
             self._refresh_queued_item_output_paths()
 
-    def button_add(self):
-        missing = []
+    def _set_playlist_expand_busy(self, busy: bool) -> None:
+        self._playlist_expand_busy = busy
+        self.pb_add.setEnabled(not busy)
+        if self._downloads_enabled and not self._reinstall_busy:
+            self.pb_download.setEnabled(not busy)
+
+    def _looks_like_playlist_request(self, link: str) -> bool:
+        snap_ok = self._link_preview_last_url == link
+        meta = self._link_preview_meta_dict if snap_ok else None
+        if isinstance(meta, dict) and (meta.get("playlist_title") or "").strip():
+            return True
+        low = link.casefold()
+        return ("list=" in low and "youtube.com" in low) or "/playlist" in low
+
+    def _start_playlist_expand(self, playlist_url: str) -> None:
+        if self._playlist_worker and self._playlist_worker.isRunning():
+            return
+        self._playlist_expand_url_active = playlist_url
+        self._playlist_expand_gen += 1
+        gen = self._playlist_expand_gen
+        worker = PlaylistExpandWorker(playlist_url, gen)
+        self._playlist_worker = worker
+        worker.entries_ready.connect(self._on_playlist_expand_ready)
+        worker.expand_failed.connect(self._on_playlist_expand_failed)
+        worker.finished.connect(worker.deleteLater)
+        self._set_playlist_expand_busy(True)
+        self.statusBar.showMessage("Expanding playlist…", 0)
+        worker.start()
+
+    def _on_playlist_expand_ready(self, gen: int, entries: list) -> None:
+        self._set_playlist_expand_busy(False)
+        self.statusBar.clearMessage()
+        if gen != self._playlist_expand_gen:
+            return
+        playlist_url = (self._playlist_expand_url_active or "").strip()
+        if not isinstance(entries, list) or len(entries) < 2:
+            self._finalize_single_add_from_field()
+            return
+        playlist_total = len(entries)
+        cap = 500
+        if playlist_total > cap:
+            confirm = QtWidgets.QMessageBox.question(
+                self,
+                "Large playlist",
+                f"This playlist expands to {playlist_total} videos.\n\n"
+                f"Queue only the first {cap} items now?\n"
+                "(You can queue the rest in another pass.)",
+                QtWidgets.QMessageBox.StandardButton.Yes
+                | QtWidgets.QMessageBox.StandardButton.No,
+                QtWidgets.QMessageBox.StandardButton.No,
+            )
+            if confirm != QtWidgets.QMessageBox.StandardButton.Yes:
+                self._playlist_expand_url_active = ""
+                return
+            entries = entries[:cap]
+
+        n = len(entries)
+
+        preset_key = self.dd_preset.currentData()
+        if not isinstance(preset_key, str) or not preset_key.strip():
+            preset_key = self.dd_preset.currentText().strip()
+        preset_display = preset_ui_label(self.config, preset_key)
+        path = self.le_path.text()
+        cat_data = self.dd_category.currentData()
+        cat_key = cat_data if isinstance(cat_data, str) and cat_data.strip() else None
+        cat_display = self._category_label_for_data(cat_data)
+        sort_on = bool(self.config["general"].get("download_sort_folders", True))
+        resolved_base = resolve_download_base_path(self.config, path, cat_key)
+
+        snap_ok = self._link_preview_last_url == playlist_url
+        thumb_snap = (
+            bytes(self._link_preview_thumb_bytes)
+            if snap_ok and self._link_preview_thumb_bytes
+            else None
+        )
+
+        self.te_link.clear()
+        self._link_preview_timer.stop()
+        self._link_preview_gen += 1
+        self._reset_link_preview_ui()
+
+        queued = 0
+        for i_pl, row_obj in enumerate(entries, start=1):
+            if not isinstance(row_obj, dict):
+                continue
+            watch = None
+            for k in ("url", "original_url", "webpage_url"):
+                u = row_obj.get(k)
+                if isinstance(u, str) and u.startswith("http"):
+                    watch = u.strip()
+                    break
+            if not watch:
+                continue
+            meta = {
+                "title": str(row_obj.get("title") or ""),
+                "uploader": str(row_obj.get("uploader") or row_obj.get("channel") or ""),
+                "duration_string": str(row_obj.get("duration_string") or ""),
+                "id": str(row_obj.get("id") or ""),
+            }
+            yt_info = dict(row_obj)
+            frame = DownloadRowFrame(
+                self.w_downloads_list,
+                self.index,
+                watch,
+                cat_display,
+                preset_key,
+                preset_display,
+                preview_meta=meta,
+                preview_thumb_bytes=thumb_snap if watch == playlist_url else None,
+                yt_info=yt_info,
+            )
+            frame.setData(0, ItemRoles.CategoryRole, cat_key)
+            frame.setData(0, ItemRoles.PlaylistPosRole, f"{i_pl}/{n}")
+            out_path = effective_download_path(resolved_base, preset_key, sort_on)
+            frame.setData(0, ItemRoles.PathRole, out_path)
+            frame.refresh_outfile_preview(self.config, path)
+            self.vl_downloads.addWidget(frame)
+            frame.customContextMenuRequested.connect(
+                lambda pos, fr=frame: self.open_menu_for_row(fr, pos)
+            )
+
+            worker = DownloadWorker(frame, self.config, watch, resolved_base, preset_key)
+            self.to_dl[self.index] = worker
+            logger.info(f"Queued download ({self.index}) added {watch}")
+            self.index += 1
+            queued += 1
+
+        self._playlist_expand_url_active = ""
+        self.statusBar.showMessage(f"Queued playlist: {queued} videos.", 8000)
+
+    def _on_playlist_expand_failed(self, gen: int, message: str) -> None:
+        self._set_playlist_expand_busy(False)
+        self.statusBar.clearMessage()
+        if gen != self._playlist_expand_gen:
+            return
+        logger.warning("playlist expand failed: %s", message)
+        self._playlist_expand_url_active = ""
+        self._finalize_single_add_from_field()
+
+    def _finalize_single_add_from_field(self) -> None:
         preset_key = self.dd_preset.currentData()
         if not isinstance(preset_key, str) or not preset_key.strip():
             preset_key = self.dd_preset.currentText().strip()
@@ -566,20 +925,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         cat_key = cat_data if isinstance(cat_data, str) and cat_data.strip() else None
         cat_display = self._category_label_for_data(cat_data)
 
-        if not link:
-            missing.append("Video URL")
-        if not path:
-            missing.append("Save to")
-
-        if missing:
-            missing_fields = ", ".join(missing)
-            return QtWidgets.QMessageBox.information(
-                self,
-                "Application Message",
-                f"Required field{'s' if len(missing) > 1 else ''} ({missing_fields}) missing.",
-            )
-
-        # Snapshot preview data before clearing the URL field (reset clears these buffers).
         snap_ok = self._link_preview_last_url == link
         meta_snap = (
             dict(self._link_preview_meta_dict)
@@ -629,6 +974,35 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.to_dl[self.index] = worker
         logger.info(f"Queued download ({self.index}) added {link}")
         self.index += 1
+
+    def button_add(self):
+        missing = []
+        preset_key = self.dd_preset.currentData()
+        if not isinstance(preset_key, str) or not preset_key.strip():
+            preset_key = self.dd_preset.currentText().strip()
+        link = normalize_url_input(self.te_link.text())
+        path = self.le_path.text()
+        cat_data = self.dd_category.currentData()
+        cat_key = cat_data if isinstance(cat_data, str) and cat_data.strip() else None
+
+        if not link:
+            missing.append("Video URL")
+        if not path:
+            missing.append("Save to")
+
+        if missing:
+            missing_fields = ", ".join(missing)
+            return QtWidgets.QMessageBox.information(
+                self,
+                "Application Message",
+                f"Required field{'s' if len(missing) > 1 else ''} ({missing_fields}) missing.",
+            )
+
+        if self._looks_like_playlist_request(link):
+            self._start_playlist_expand(link)
+            return
+
+        self._finalize_single_add_from_field()
 
     def button_clear(self):
         if self.workers:
@@ -776,6 +1150,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             w.refresh_outfile_preview(self.config, default_base)
 
     def closeEvent(self, event):
+        if self._playlist_worker and self._playlist_worker.isRunning():
+            self._playlist_worker.request_stop()
+            self._playlist_worker.wait(2000)
+
         self.config["general"]["current_preset"] = self.dd_preset.currentIndex()
         self.config["general"]["path"] = self.le_path.text()
         cur_cat = self.dd_category.currentData()

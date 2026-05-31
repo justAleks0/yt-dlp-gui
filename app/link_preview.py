@@ -64,7 +64,8 @@ class LinkPreviewWorker(QThread):
         cmd = list(resolve_ytdlp_argv()) + [
             "--skip-download",
             "--dump-single-json",
-            "--no-playlist",
+            "--playlist-items",
+            "1",
             "--no-warnings",
             "--",
             self._url,
@@ -106,6 +107,15 @@ class LinkPreviewWorker(QThread):
             self.preview_failed.emit(self._gen, "Unexpected response from yt-dlp.")
             return
 
+        playlist_title = ""
+        playlist_count = ""
+        if data.get("_type") == "playlist":
+            playlist_title = str(data.get("title") or "")
+            pc = data.get("playlist_count")
+            if pc is None and isinstance(data.get("entries"), list):
+                pc = len(data["entries"])
+            playlist_count = str(pc or "")
+
         if data.get("_type") == "playlist" and data.get("entries"):
             ent = data["entries"][0]
             if isinstance(ent, dict):
@@ -135,5 +145,7 @@ class LinkPreviewWorker(QThread):
             "uploader": str(data.get("uploader") or data.get("channel") or ""),
             "duration_string": str(data.get("duration_string") or ""),
             "id": str(data.get("id") or ""),
+            "playlist_title": playlist_title,
+            "playlist_count": playlist_count,
         }
         self.preview_ready.emit(self._gen, self._url, meta, thumb_bytes, dict(data))
